@@ -1,6 +1,8 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
+#include "..\Price\Close.mq5"
+
 class RSI {
 public:
     RSI(void);
@@ -8,22 +10,22 @@ public:
 
     void Initialize(int size, int rangeStart, int rangeEnd);
     bool InitializeSuccess(void);
+    int GetSize(void);
 
-    void ReverseAdd(double, int);
-    void Calc(void);
+    void Calc(Close &close);
     void CopyResult(double &rsis[]);
+    double ValueAt(int index);
 
 private:
     int m_size;
     int m_rangeStart;
     int m_rangeEnd;
-    double m_series[];
     double m_results[];
     bool m_initializeSuccess;
 
     bool CheckArguments(void);
-    double SumPlus(int, int);
-    double SumMinus(int, int);
+    double SumPlus(int rangeStart, int rangeEnd, Close &close);
+    double SumMinus(int rangeStart, int rangeEnd, Close &close);
 };
 
 void RSI::RSI() {}
@@ -35,7 +37,6 @@ void RSI::Initialize(int size, int rangeStart, int rangeEnd) {
     m_rangeStart = rangeStart;
     m_rangeEnd = rangeEnd;
     if (!CheckArguments()
-        || ArrayResize(m_series, m_size, 0) == -1
         || ArrayResize(m_results, m_size, 0) == -1) {
         m_initializeSuccess = false;
         return;
@@ -47,11 +48,11 @@ bool RSI::InitializeSuccess() {
     return m_initializeSuccess;
 }
 
-void RSI::ReverseAdd(double v, int i) {
-    m_series[(m_size - 1) - i] = v;
+int RSI::GetSize() {
+    return m_size;
 }
 
-void RSI::Calc() {
+void RSI::Calc(Close &close) {
     int startAt = m_rangeStart;
     for (int i = startAt; i < m_size; i++) {
         int rangeStart = i - m_rangeStart;
@@ -59,8 +60,8 @@ void RSI::Calc() {
         if (rangeEnd > m_size) {
             rangeEnd = m_size;
         }
-        double plus = SumPlus(rangeStart, rangeEnd);
-        double minus = SumMinus(rangeStart, rangeEnd);
+        double plus = SumPlus(rangeStart, rangeEnd, close);
+        double minus = SumMinus(rangeStart, rangeEnd, close);
         m_results[i] = (plus / (plus + minus)) * 100;
     }
 }
@@ -71,25 +72,25 @@ void RSI::CopyResult(double &rsis[]) {
     }
 }
 
+double RSI::ValueAt(int index) {
+    return m_results[index];
+}
+
 bool RSI::CheckArguments() {
     if (m_size < m_rangeStart + m_rangeEnd) {
         printf("RSI::Initialize Calculation size must be larger than the number of items from rangeStart to rangeEnd.");
         return false;
     }
-    if (m_rangeStart < m_rangeEnd) {
-        printf("RSI::Initialize rangeEnd must be larger than rangeStart");
-        return false;
-    }
     return true;
 }
 
-double RSI::SumPlus(int rangeStart, int rangeEnd) {
+double RSI::SumPlus(int rangeStart, int rangeEnd, Close &close) {
     double plus = 0;
     for (int i = rangeStart; i < rangeEnd; i++) {
         if (i == 0) {
             continue;
         }
-        double diff = m_series[i] - m_series[i - 1];
+        double diff = close.ValueAt(i) - close.ValueAt(i - 1);
         if (diff > 0) {
             plus += diff;
         }
@@ -97,13 +98,13 @@ double RSI::SumPlus(int rangeStart, int rangeEnd) {
     return plus;
 }
 
-double RSI::SumMinus(int rangeStart, int rangeEnd) {
+double RSI::SumMinus(int rangeStart, int rangeEnd, Close &close) {
     double minus = 0;
     for (int i = rangeStart; i < rangeEnd; i++) {
         if (i == 0) {
             continue;
         }
-        double diff = m_series[i - 1] - m_series[i];
+        double diff = close.ValueAt(i - 1) - close.ValueAt(i);
         if (diff > 0) {
             minus += diff;
         }
