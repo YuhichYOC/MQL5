@@ -28,6 +28,7 @@ double PlotMASeries[];
 double PlotPlusSeries[];
 double PlotMinusSeries[];
 
+#include "..\..\..\Libraries\Price\Close.mq5"
 #include "..\..\..\Libraries\BolingerBand\BolingerBand.mq5"
 
 class BolingerBand21H1Plot {
@@ -38,11 +39,13 @@ public:
     void Initialize(int size);
     bool InitializeSuccess(void);
 
-    void ReverseAdd(double, int);
     void Calc(void);
     void CopyResult(double &plotMASeries[], double &plotPlusSeries[], double &plotMinusSeries[]);
 
 private:
+    Close close;
+    MovingAverage ma;
+    Deviations deviations;
     BolingerBand b;
 };
 
@@ -51,19 +54,24 @@ void BolingerBand21H1Plot::BolingerBand21H1Plot() {}
 void BolingerBand21H1Plot::~BolingerBand21H1Plot() {}
 
 void BolingerBand21H1Plot::Initialize(int size) {
-    b.Initialize(size, 20, 1, 2);
+    close.Initialize(_Symbol, PERIOD_H1, size);
+    ma.Initialize(size, 20, 1);
+    deviations.Initialize(size, 20, 1);
+    b.Initialize(size, 2);
 }
 
 bool BolingerBand21H1Plot::InitializeSuccess() {
-    return b.InitializeSuccess();
-}
-
-void BolingerBand21H1Plot::ReverseAdd(double value, int i) {
-    b.ReverseAdd(value, i);
+    return close.InitializeSuccess()
+        && ma.InitializeSuccess()
+        && deviations.InitializeSuccess()
+        && b.InitializeSuccess();
 }
 
 void BolingerBand21H1Plot::Calc() {
-    b.Calc();
+    close.Fill();
+    ma.Calc(close);
+    deviations.Calc(close);
+    b.Calc(ma, deviations);
 }
 
 void BolingerBand21H1Plot::CopyResult(double &plotMASeries[], double &plotPlusSeries[], double &plotMinusSeries[]) {
@@ -99,9 +107,6 @@ int OnCalculate(
         p.Initialize(rates_total);
         if (!p.InitializeSuccess()) {
             return rates_total;
-        }
-        for (int i = 0; i < rates_total; i++) {
-            p.ReverseAdd(iClose(_Symbol, PERIOD_H1, i), i);
         }
         p.Calc();
         p.CopyResult(PlotMASeries, PlotPlusSeries, PlotMinusSeries);
