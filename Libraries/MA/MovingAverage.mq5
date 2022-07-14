@@ -1,6 +1,8 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
+#include "..\Price\Close.mq5"
+
 class MovingAverage {
 public:
     MovingAverage(void);
@@ -8,21 +10,21 @@ public:
 
     void Initialize(int size, int rangeStart, int rangeEnd);
     bool InitializeSuccess(void);
+    int GetSize(void);
 
-    void ReverseAdd(double, int);
-    void Calc(void);
+    void Calc(Close &close);
     void CopyResult(double &mas[]);
+    double ValueAt(int index);
 
 private:
     int m_size;
     int m_rangeStart;
     int m_rangeEnd;
-    double m_series[];
     double m_results[];
     bool m_initializeSuccess;
 
     bool CheckArguments(void);
-    double SumCloses(int, int);
+    double SumCloses(int rangeStart, int rangeEnd, Close &close);
 };
 
 void MovingAverage::MovingAverage() {}
@@ -34,7 +36,6 @@ void MovingAverage::Initialize(int size, int rangeStart, int rangeEnd) {
     m_rangeStart = rangeStart;
     m_rangeEnd = rangeEnd;
     if (!CheckArguments()
-        || ArrayResize(m_series, m_size, 0) == -1
         || ArrayResize(m_results, m_size, 0) == -1) {
         m_initializeSuccess = false;
         return;
@@ -46,11 +47,11 @@ bool MovingAverage::InitializeSuccess() {
     return m_initializeSuccess;
 }
 
-void MovingAverage::ReverseAdd(double v, int i) {
-    m_series[(m_size - 1) - i] = v;
+int MovingAverage::GetSize() {
+    return m_size;
 }
 
-void MovingAverage::Calc() {
+void MovingAverage::Calc(Close &close) {
     int startAt = m_rangeStart;
     for (int i = startAt; i < m_size; i++) {
         int rangeStart = i - m_rangeStart;
@@ -59,7 +60,7 @@ void MovingAverage::Calc() {
             rangeEnd = m_size;
         }
         int denominator = rangeEnd - rangeStart;
-        double numerator = SumCloses(rangeStart, rangeEnd);
+        double numerator = SumCloses(rangeStart, rangeEnd, close);
         m_results[i] = numerator / denominator;
     }
 }
@@ -70,22 +71,22 @@ void MovingAverage::CopyResult(double &mas[]) {
     }
 }
 
+double MovingAverage::ValueAt(int index) {
+    return m_results[index];
+}
+
 bool MovingAverage::CheckArguments() {
     if (m_size < m_rangeStart + m_rangeEnd) {
         printf("MovingAverage::Initialize Calculation size must be larger than the number of items from rangeStart to rangeEnd.");
         return false;
     }
-    if (m_rangeStart < m_rangeEnd) {
-        printf("MovingAverage::Initialize rangeEnd must be larger than rangeStart");
-        return false;
-    }
     return true;
 }
 
-double MovingAverage::SumCloses(int rangeStart, int rangeEnd) {
+double MovingAverage::SumCloses(int rangeStart, int rangeEnd, Close &close) {
     double sum = 0;
     for (int i = rangeStart; i < rangeEnd; i++) {
-        sum += m_series[i];
+        sum += close.ValueAt(i);
     }
     return sum;
 }
