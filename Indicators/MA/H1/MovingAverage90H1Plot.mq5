@@ -14,6 +14,7 @@
 //--- indicator buffers
 double PlotMASeries[];
 
+#include "..\..\..\Libraries\Price\Close.mq5"
 #include "..\..\..\Libraries\MA\MovingAverage.mq5"
 
 class MovingAverage90H1Plot {
@@ -24,11 +25,11 @@ public:
     void Initialize(int size);
     bool InitializeSuccess(void);
 
-    void ReverseAdd(double, int);
-    void Calc();
+    void Calc(void);
     void CopyResult(double &plotMASeries[]);
 
 private:
+    Close close;
     MovingAverage ma;
 };
 
@@ -37,19 +38,18 @@ void MovingAverage90H1Plot::MovingAverage90H1Plot() {}
 void MovingAverage90H1Plot::~MovingAverage90H1Plot() {}
 
 void MovingAverage90H1Plot::Initialize(int size) {
+    close.Initialize(_Symbol, PERIOD_H1, size);
     ma.Initialize(size, 89, 1);
 }
 
 bool MovingAverage90H1Plot::InitializeSuccess() {
-    return ma.InitializeSuccess();
-}
-
-void MovingAverage90H1Plot::ReverseAdd(double value, int i) {
-    ma.ReverseAdd(value, i);
+    return close.InitializeSuccess()
+        && ma.InitializeSuccess();
 }
 
 void MovingAverage90H1Plot::Calc() {
-    ma.Calc();
+    close.Fill();
+    ma.Calc(close);
 }
 
 void MovingAverage90H1Plot::CopyResult(double &plotMASeries[]) {
@@ -83,9 +83,6 @@ int OnCalculate(
         p.Initialize(rates_total);
         if (!p.InitializeSuccess()) {
             return rates_total;
-        }
-        for (int i = 0; i < rates_total; i++) {
-            p.ReverseAdd(iClose(_Symbol, PERIOD_H1, i), i);
         }
         p.Calc();
         p.CopyResult(PlotMASeries);
