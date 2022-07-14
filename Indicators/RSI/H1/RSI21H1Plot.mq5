@@ -24,11 +24,11 @@ public:
     void Initialize(int size);
     bool InitializeSuccess(void);
 
-    void ReverseAdd(double, int);
     void Calc(void);
     void CopyResult(double &plotRSISeries[]);
 
 private:
+    Close close;
     RSI rsi;
 };
 
@@ -37,19 +37,18 @@ void RSI21H1Plot::RSI21H1Plot() {}
 void RSI21H1Plot::~RSI21H1Plot() {}
 
 void RSI21H1Plot::Initialize(int size) {
+    close.Initialize(_Symbol, PERIOD_H1, size);
     rsi.Initialize(size, 20, 1);
 }
 
 bool RSI21H1Plot::InitializeSuccess() {
-    return rsi.InitializeSuccess();
-}
-
-void RSI21H1Plot::ReverseAdd(double value, int i) {
-    rsi.ReverseAdd(value, i);
+    return close.InitializeSuccess()
+        && rsi.InitializeSuccess();
 }
 
 void RSI21H1Plot::Calc() {
-    rsi.Calc();
+    close.Fill();
+    rsi.Calc(close);
 }
 
 void RSI21H1Plot::CopyResult(double &plotRSISeries[]) {
@@ -83,9 +82,6 @@ int OnCalculate(
         p.Initialize(rates_total);
         if (!p.InitializeSuccess()) {
             return rates_total;
-        }
-        for (int i = 0; i < rates_total; i++) {
-            p.ReverseAdd(iClose(_Symbol, PERIOD_H1, i), i);
         }
         p.Calc();
         p.CopyResult(PlotRSISeries);
