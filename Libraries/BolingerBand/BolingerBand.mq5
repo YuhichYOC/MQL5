@@ -9,26 +9,19 @@ public:
     BolingerBand(void);
     ~BolingerBand(void);
 
-    void Initialize(int size, int rangeStart, int rangeEnd, int sigma);
+    void Initialize(int size, double sigma);
     bool InitializeSuccess(void);
 
-    void ReverseAdd(double, int);
-    void Calc(void);
+    void Calc(MovingAverage &ma, Deviations &deviations);
     void CopyResult(double &maSeries[], double &plusSeries[], double &minusSeries[]);
 
 private:
     int m_size;
-    int m_rangeStart;
-    int m_rangeEnd;
-    int m_sigma;
+    double m_sigma;
     double m_maSeries[];
-    double m_deviationSeries[];
     double m_plusSeries[];
     double m_minusSeries[];
     bool m_initializeSuccess;
-
-    MovingAverage ma;
-    Deviations d;
 
     bool CheckArguments(void);
 };
@@ -37,43 +30,28 @@ void BolingerBand::BolingerBand() {}
 
 void BolingerBand::~BolingerBand() {}
 
-void BolingerBand::Initialize(int size, int rangeStart, int rangeEnd, int sigma) {
+void BolingerBand::Initialize(int size, double sigma) {
     m_size = size;
-    m_rangeStart = rangeStart;
-    m_rangeEnd = rangeEnd;
     m_sigma = sigma;
     if (!CheckArguments()
         || ArrayResize(m_maSeries, m_size, 0) == -1
-        || ArrayResize(m_deviationSeries, m_size, 0) == -1
         || ArrayResize(m_plusSeries, m_size, 0) == -1
         || ArrayResize(m_minusSeries, m_size, 0) == -1) {
         m_initializeSuccess = false;
         return;
     }
-    ma.Initialize(m_size, m_rangeStart, m_rangeEnd);
-    d.Initialize(m_size, m_rangeStart, m_rangeEnd);
     m_initializeSuccess = true;
 }
 
 bool BolingerBand::InitializeSuccess() {
-    return m_initializeSuccess
-        && ma.InitializeSuccess()
-        && d.InitializeSuccess();
+    return m_initializeSuccess;
 }
 
-void BolingerBand::ReverseAdd(double v, int i) {
-    ma.ReverseAdd(v, i);
-    d.ReverseAdd(v, i);
-}
-
-void BolingerBand::Calc() {
-    ma.Calc();
-    d.Calc();
+void BolingerBand::Calc(MovingAverage &ma, Deviations &deviations) {
     ma.CopyResult(m_maSeries);
-    d.CopyResult(m_deviationSeries);
     for (int i = 0; i < m_size; i++) {
-        m_plusSeries[i] = m_maSeries[i] + m_deviationSeries[i] * m_sigma;
-        m_minusSeries[i] = m_maSeries[i] - m_deviationSeries[i] * m_sigma;
+        m_plusSeries[i] = ma.ValueAt(i) + deviations.ValueAt(i) * m_sigma;
+        m_minusSeries[i] = ma.ValueAt(i) - deviations.ValueAt(i) * m_sigma;
     }
 }
 
@@ -86,8 +64,8 @@ void BolingerBand::CopyResult(double &maSeries[], double &plusSeries[], double &
 }
 
 bool BolingerBand::CheckArguments() {
-    if (m_sigma < 1) {
-        printf("BolingerBand::Initialize sigma must be larger than 1");
+    if (m_sigma <= 0) {
+        printf("BolingerBand::Initialize sigma must be larger than 0");
         return false;
     }
     return true;
