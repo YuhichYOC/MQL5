@@ -1,6 +1,8 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
+#include "..\Price\Close.mq5"
+
 class Deviations {
 public:
     Deviations(void);
@@ -9,20 +11,19 @@ public:
     void Initialize(int size, int rangeStart, int rangeEnd);
     bool InitializeSuccess(void);
 
-    void ReverseAdd(double, int);
-    void Calc(void);
+    void Calc(Close &close);
     void CopyResult(double &deviations[]);
+    double ValueAt(int index);
 
 private:
     int m_size;
     int m_rangeStart;
     int m_rangeEnd;
-    double m_series[];
     double m_results[];
     bool m_initializeSuccess;
 
     bool CheckArguments(void);
-    double CalcDeviation(int, int);
+    double CalcDeviation(int rangeStart, int rangeEnd, Close &close);
 };
 
 void Deviations::Deviations() {}
@@ -34,7 +35,6 @@ void Deviations::Initialize(int size, int rangeStart, int rangeEnd) {
     m_rangeStart = rangeStart;
     m_rangeEnd = rangeEnd;
     if (!CheckArguments()
-        || ArrayResize(m_series, m_size, 0) == -1
         || ArrayResize(m_results, m_size, 0) == -1) {
         m_initializeSuccess = false;
         return;
@@ -46,11 +46,7 @@ bool Deviations::InitializeSuccess() {
     return m_initializeSuccess;
 }
 
-void Deviations::ReverseAdd(double v, int i) {
-    m_series[(m_size - 1) - i] = v;
-}
-
-void Deviations::Calc() {
+void Deviations::Calc(Close &close) {
     int startAt = m_rangeStart;
     for (int i = startAt; i < m_size; i++) {
         int rangeStart = i - m_rangeStart;
@@ -58,7 +54,7 @@ void Deviations::Calc() {
         if (rangeEnd > m_size) {
             rangeEnd = m_size;
         }
-        m_results[i] = CalcDeviation(rangeStart, rangeEnd);
+        m_results[i] = CalcDeviation(rangeStart, rangeEnd, close);
     }
 }
 
@@ -68,26 +64,26 @@ void Deviations::CopyResult(double &deviations[]) {
     }
 }
 
+double Deviations::ValueAt(int index) {
+    return m_results[index];
+}
+
 bool Deviations::CheckArguments() {
     if (m_size < m_rangeStart + m_rangeEnd) {
         printf("Deviations::Initialize Calculation size must be larger than the number of items from rangeStart to rangeEnd.");
         return false;
     }
-    if (m_rangeStart < m_rangeEnd) {
-        printf("Deviations::Initialize rangeEnd must be larger than rangeStart");
-        return false;
-    }
     return true;
 }
 
-double Deviations::CalcDeviation(int rangeStart, int rangeEnd) {
+double Deviations::CalcDeviation(int rangeStart, int rangeEnd, Close &close) {
     double powerSum = 0;
     for (int i = rangeStart; i < rangeEnd; i++) {
-        powerSum += MathPow(m_series[i], 2);
+        powerSum += MathPow(close.ValueAt(i), 2);
     }
     double sumPower = 0;
     for (int i = rangeStart; i < rangeEnd; i++) {
-        sumPower += m_series[i];
+        sumPower += close.ValueAt(i);
     }
     sumPower = MathPow(sumPower, 2);
     int n = rangeEnd - rangeStart;
