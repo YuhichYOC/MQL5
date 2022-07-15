@@ -13,6 +13,11 @@ public:
     bool AreEqualMinute(MqlDateTime &arg1, MqlDateTime &arg2);
     bool AreEqualHour(MqlDateTime &arg1, MqlDateTime &arg2);
     bool LessThanMinute(MqlDateTime &arg1, MqlDateTime &arg2, int min);
+
+    datetime AddDays(datetime arg, int days);
+    datetime AddHours(datetime arg, int hours);
+    datetime AddMinutes(datetime arg, int minutes);
+    datetime AddSeconds(datetime arg, int seconds);
 };
 
 void DateTimeUtil::DateTimeUtil() {}
@@ -71,6 +76,30 @@ bool DateTimeUtil::LessThanMinute(MqlDateTime &arg1, MqlDateTime &arg2, int min)
     string arg2str = IntegerToString(arg2.year) + IntegerToString(arg2.mon, 2, '0') + IntegerToString(arg2.day, 2, '0')
         + IntegerToString(arg2.hour, 2, '0') + IntegerToString(arg2.min, 2, '0');
     return arg1str >= arg2str;
+}
+
+datetime DateTimeUtil::AddDays(datetime arg, int days) {
+    long target = (long)arg;
+    target += (60 * 60 * 24) * days;
+    return (datetime)target;
+}
+
+datetime DateTimeUtil::AddHours(datetime arg, int hours) {
+    long target = (long)arg;
+    target += (60 * 60) * hours;
+    return (datetime)target;
+}
+
+datetime DateTimeUtil::AddMinutes(datetime arg, int minutes) {
+    long target = (long)arg;
+    target += 60 * minutes;
+    return (datetime)target;
+}
+
+datetime DateTimeUtil::AddSeconds(datetime arg, int seconds) {
+    long target = (long)arg;
+    target += seconds;
+    return (datetime)target;
 }
 
 class OpenTimeChecker {
