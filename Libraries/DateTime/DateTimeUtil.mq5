@@ -1,11 +1,16 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
+#ifndef D_DATETIME_UTIL_H
+#define D_DATETIME_UTIL_H
+
 class DateTimeUtil {
 public:
     DateTimeUtil(void);
     ~DateTimeUtil(void);
 
+    datetime ValueToDateTime(int year, int month, int day, int hour, int minute, int second);
+    datetime ShiftToDateTime(string symbol, ENUM_TIMEFRAMES period, int shift);
     MqlDateTime GetCurrent(void);
     ENUM_DAY_OF_WEEK IntToDow(int dow);
     MqlDateTime ConvertDateTime(datetime);
@@ -20,9 +25,29 @@ public:
     datetime AddSeconds(datetime arg, int seconds);
 };
 
+#endif
+
+#ifndef D_DATETIME_UTIL_B
+#define D_DATETIME_UTIL_B
+
 void DateTimeUtil::DateTimeUtil() {}
 
 void DateTimeUtil::~DateTimeUtil() {}
+
+datetime DateTimeUtil::ValueToDateTime(int year, int month, int day, int hour, int minute, int second) {
+    MqlDateTime d;
+    d.year = year;
+    d.mon = month;
+    d.day = day;
+    d.hour = hour;
+    d.min = minute;
+    d.sec = second;
+    return StructToTime(d);
+}
+
+datetime DateTimeUtil::ShiftToDateTime(string symbol, ENUM_TIMEFRAMES period, int shift) {
+    return iTime(symbol, period, shift);
+}
 
 MqlDateTime DateTimeUtil::GetCurrent() {
     MqlDateTime nowMql;
@@ -102,31 +127,33 @@ datetime DateTimeUtil::AddSeconds(datetime arg, int seconds) {
     return (datetime)target;
 }
 
+#endif
+
+#ifndef D_OPENTIME_CHECKER_H
+#define D_OPENTIME_CHECKER_H
+
 class OpenTimeChecker {
 public:
     OpenTimeChecker(void);
     ~OpenTimeChecker(void);
 
-    void Initialize(string symbol);
-    bool IsOpen(void);
-
-private:
-    string m_symbol;
+    bool IsOpen(string symbol);
 };
+
+#endif
+
+#ifndef D_OPENTIME_CHECKER_B
+#define D_OPENTIME_CHECKER_B
 
 void OpenTimeChecker::OpenTimeChecker() {}
 
 void OpenTimeChecker::~OpenTimeChecker() {}
 
-void OpenTimeChecker::Initialize(string symbol) {
-    m_symbol = symbol;
-}
-
-bool OpenTimeChecker::IsOpen() {
+bool OpenTimeChecker::IsOpen(string symbol) {
     DateTimeUtil du;
     MqlDateTime nowMql = du.GetCurrent();
     datetime from, to;
-    SymbolInfoSessionTrade(m_symbol, du.IntToDow(nowMql.day_of_week), 0, from, to);
+    SymbolInfoSessionTrade(symbol, du.IntToDow(nowMql.day_of_week), 0, from, to);
     MqlDateTime fromMql = du.ConvertDateTime(from);
     MqlDateTime toMql = du.ConvertDateTime(to);
     int fromInt = fromMql.hour * 10000 + fromMql.min * 100 + fromMql.sec;
@@ -134,3 +161,5 @@ bool OpenTimeChecker::IsOpen() {
     int toInt = toMql.hour * 10000 + toMql.min * 100 + toMql.sec;
     return fromInt <= nowInt && nowInt <= toInt;
 }
+
+#endif
