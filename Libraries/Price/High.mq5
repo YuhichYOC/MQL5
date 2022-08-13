@@ -1,6 +1,9 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
+#ifndef D_HIGH_H
+#define D_HIGH_H
+
 class High {
 public:
     High(void);
@@ -11,6 +14,8 @@ public:
     int GetSize(void);
 
     void Fill(void);
+    void Fill(int appendSize);
+    void Refresh(void);
     void CopyResult(double &results[]);
     double ValueAt(int index);
 
@@ -21,6 +26,11 @@ private:
     double m_results[];
     bool m_initializeSuccess;
 };
+
+#endif
+
+#ifndef D_HIGH_B
+#define D_HIGH_B
 
 void High::High() {}
 
@@ -51,6 +61,22 @@ void High::Fill() {
     }
 }
 
+void High::Fill(int appendSize) {
+    if (ArrayResize(m_results, m_size + appendSize, 0) == -1) {
+        m_initializeSuccess = false;
+        return;
+    }
+    for (int i = 0; i < appendSize; i++) {
+        m_results[(m_size + appendSize - 1) - i] = iHigh(m_symbol, m_period, i);
+    }
+    m_size += appendSize;
+    m_initializeSuccess = true;
+}
+
+void High::Refresh() {
+    m_results[m_size - 1] = iHigh(m_symbol, m_period, 0);
+}
+
 void High::CopyResult(double &results[]) {
     for (int i = 0; i < m_size; i++) {
         results[i] = m_results[i];
@@ -60,3 +86,5 @@ void High::CopyResult(double &results[]) {
 double High::ValueAt(int index) {
     return m_results[index];
 }
+
+#endif
