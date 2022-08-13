@@ -25,10 +25,13 @@ public:
     double Low(void);
     int LowAt(void);
     bool Found(void);
-    void FindLow(void);
-    void FindLow(int rangeStart);
+    void Find(void);
+    void Find(int rangeStart);
+    void Append(int);
 
 private:
+    string m_symbol;
+    ENUM_TIMEFRAMES m_period;
     int m_size;
     double m_deviation;
 
@@ -59,9 +62,11 @@ void ZigZagLow::Initialize(
     int size,
     double deviation
 ) {
+    m_symbol = symbol;
+    m_period = period;
     m_size = size;
     m_deviation = deviation;
-    m_l.Initialize(symbol, period, m_size);
+    m_l.Initialize(m_symbol, m_period, m_size);
 }
 
 bool ZigZagLow::InitializeSuccess() {
@@ -80,7 +85,7 @@ bool ZigZagLow::Found() {
     return m_found;
 }
 
-void ZigZagLow::FindLow() {
+void ZigZagLow::Find() {
     m_l.Fill();
     m_found = false;
     for (int i = 0; i < m_size; i++) {
@@ -92,7 +97,7 @@ void ZigZagLow::FindLow() {
     }
 }
 
-void ZigZagLow::FindLow(int rangeStart) {
+void ZigZagLow::Find(int rangeStart) {
     m_found = false;
     for (int i = rangeStart; i < m_size; i++) {
         FindProvisionalLow(rangeStart, i);
@@ -100,6 +105,13 @@ void ZigZagLow::FindLow(int rangeStart) {
         if (m_found) {
             return;
         }
+    }
+}
+
+void ZigZagLow::Append(int size) {
+    m_l.Fill(size);
+    if (m_l.InitializeSuccess()) {
+        m_size += size;
     }
 }
 
