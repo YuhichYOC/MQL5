@@ -28,8 +28,13 @@ double PlotMASeries[];
 double PlotPlusSeries[];
 double PlotMinusSeries[];
 
-#include "..\..\..\Libraries\Price\Close.mq5"
+#ifndef IG_BOLINGER_BAND
+#define IG_BOLINGER_BAND
 #include "..\..\..\Libraries\BolingerBand\BolingerBand.mq5"
+#endif
+
+#ifndef D_BOLINGER_BAND_21H1_PLOT_H
+#define D_BOLINGER_BAND_21H1_PLOT_H
 
 class BolingerBand21H1Plot {
 public:
@@ -40,49 +45,93 @@ public:
     bool InitializeSuccess(void);
 
     void Calc(void);
-    void CopyResult(double &plotMASeries[], double &plotPlusSeries[], double &plotMinusSeries[]);
+    void Calc(int appendSize);
+    void Refresh(
+        int size,
+        double &plotMASeries[],
+        double &plotPlusSeries[],
+        double &plotMinusSeries[]
+    );
+    void CopyResult(
+        double &plotMASeries[],
+        double &plotPlusSeries[],
+        double &plotMinusSeries[]
+    );
 
 private:
-    Close close;
-    MovingAverage ma;
-    Deviations deviations;
-    BolingerBand b;
+    string m_symbol;
+    ENUM_TIMEFRAMES m_period;
+    int m_size;
+    BolingerBand m_b;
 };
+
+#endif
+
+#ifndef D_BOLINGER_BAND_21H1_PLOT_B
+#define D_BOLINGER_BAND_21H1_PLOT_B
 
 void BolingerBand21H1Plot::BolingerBand21H1Plot() {}
 
 void BolingerBand21H1Plot::~BolingerBand21H1Plot() {}
 
 void BolingerBand21H1Plot::Initialize(int size) {
-    close.Initialize(_Symbol, PERIOD_H1, size);
-    ma.Initialize(size, 20, 1);
-    deviations.Initialize(size, 20, 1);
-    b.Initialize(size, 2);
+    m_symbol = _Symbol;
+    m_period = _Period;
+    m_size = size;
+    m_b.Initialize(m_symbol, m_period, m_size, 20, 1, 2);
 }
 
 bool BolingerBand21H1Plot::InitializeSuccess() {
-    return close.InitializeSuccess()
-        && ma.InitializeSuccess()
-        && deviations.InitializeSuccess()
-        && b.InitializeSuccess();
+    return m_b.InitializeSuccess();
 }
 
 void BolingerBand21H1Plot::Calc() {
-    close.Fill();
-    ma.Calc(close);
-    deviations.Calc(close);
-    b.Calc(ma, deviations);
+    m_b.Calc();
 }
 
-void BolingerBand21H1Plot::CopyResult(double &plotMASeries[], double &plotPlusSeries[], double &plotMinusSeries[]) {
-    b.CopyResult(plotMASeries, plotPlusSeries, plotMinusSeries);
+void BolingerBand21H1Plot::Calc(int appendSize) {
+    m_b.Calc(appendSize);
+    m_size += appendSize;
 }
+
+void BolingerBand21H1Plot::Refresh(
+    int size,
+    double &plotMASeries[],
+    double &plotPlusSeries[],
+    double &plotMinusSeries[]
+) {
+    if (size == 0) {
+        m_b.Refresh();
+        plotMASeries[m_size - 1] = m_b.ValueAt(m_size - 1);
+        plotPlusSeries[m_size - 1] = m_b.HighAt(m_size - 1);
+        plotMinusSeries[m_size - 1] = m_b.LowAt(m_size - 1);
+        return;
+    }
+
+    for (int i = m_size - size; i < m_size; i++) {
+        plotMASeries[i] = m_b.ValueAt(i);
+        plotPlusSeries[i] = m_b.HighAt(i);
+        plotMinusSeries[i] = m_b.LowAt(i);
+    }
+}
+
+void BolingerBand21H1Plot::CopyResult(
+    double &plotMASeries[],
+    double &plotPlusSeries[],
+    double &plotMinusSeries[]
+) {
+    for (int i = 0; i < m_size; i++) {
+        plotMASeries[i] = m_b.ValueAt(i);
+        plotPlusSeries[i] = m_b.HighAt(i);
+        plotMinusSeries[i] = m_b.LowAt(i);
+    }
+}
+
+#endif
 
 BolingerBand21H1Plot p;
-int try;
 
 int OnInit() {
-    try = 10000;
     SetIndexBuffer(0, PlotMASeries, INDICATOR_DATA);
     SetIndexBuffer(1, PlotPlusSeries, INDICATOR_DATA);
     SetIndexBuffer(2, PlotMinusSeries, INDICATOR_DATA);
@@ -93,27 +142,34 @@ int OnCalculate(
     const int rates_total,
     const int prev_calculated,
     const int begin,
-    const double& price[]) {
-
-    if (try < 10000) {
-        try += 1;
-        return rates_total;
-    }
-    else {
-        try = 0;
-    }
-
+    const double& price[]
+) {
     if (prev_calculated == 0) {
         p.Initialize(rates_total);
         if (!p.InitializeSuccess()) {
             return rates_total;
         }
         p.Calc();
-        p.CopyResult(PlotMASeries, PlotPlusSeries, PlotMinusSeries);
-    }
-    else {
-        printf("OnCalculate canceled");
+        p.CopyResult(
+            PlotMASeries,
+            PlotPlusSeries,
+            PlotMinusSeries
+        );
+        return rates_total;
     }
 
+    int appendSize = rates_total - prev_calculated;
+    if (appendSize > 0) {
+        p.Calc(appendSize);
+    }
+    if (!p.InitializeSuccess()) {
+        return rates_total;
+    }
+    p.Refresh(
+        appendSize,
+        PlotMASeries,
+        PlotPlusSeries,
+        PlotMinusSeries
+    );
     return rates_total;
 }
