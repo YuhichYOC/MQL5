@@ -16,7 +16,13 @@ double PlotZZSeries[];
 
 input double Deviation = 1.0;
 
+#ifndef IG_ZIGZAG
+#define IG_ZIGZAG
 #include "..\..\Libraries\ZigZag\ZigZag.mq5"
+#endif
+
+#ifndef D_ZIGZAG_PLOT_H
+#define D_ZIGZAG_PLOT_H
 
 class ZigZagPlot {
 public:
@@ -32,11 +38,21 @@ public:
     bool InitializeSuccess(void);
 
     void Scan(void);
+    void Scan(int appendSize);
     void CopyResult(double &zz[]);
 
 private:
+    string m_symbol;
+    ENUM_TIMEFRAMES m_period;
+    int m_size;
+
     ZigZag zz;
 };
+
+#endif
+
+#ifndef D_ZIGZAG_PLOT_B
+#define D_ZIGZAG_PLOT_B
 
 void ZigZagPlot::ZigZagPlot() {}
 
@@ -48,7 +64,10 @@ void ZigZagPlot::Initialize(
     int size,
     double deviation
 ) {
-    zz.Initialize(symbol, period, size, deviation);
+    m_symbol = symbol;
+    m_period = period;
+    m_size = size;
+    zz.Initialize(m_symbol, m_period, m_size, deviation);
 }
 
 bool ZigZagPlot::InitializeSuccess() {
@@ -59,15 +78,22 @@ void ZigZagPlot::Scan() {
     zz.Scan();
 }
 
-void ZigZagPlot::CopyResult(double &plotZZSeries[]) {
-    zz.CopyResult(plotZZSeries);
+void ZigZagPlot::Scan(int appendSize) {
+    zz.Scan(appendSize);
+    m_size += appendSize;
 }
 
-ZigZagPlot z;
-int try;
+void ZigZagPlot::CopyResult(double &plotZZSeries[]) {
+    for (int i = 0; i < m_size; i++) {
+        plotZZSeries[i] = zz.ValueAt(i);
+    }
+}
+
+#endif
+
+ZigZagPlot p;
 
 int OnInit() {
-    try = 10000;
     SetIndexBuffer(0, PlotZZSeries, INDICATOR_DATA);
     PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, 0);
     return INIT_SUCCEEDED;
@@ -79,32 +105,31 @@ int OnCalculate(
     const int begin,
     const double& price[]
 ) {
-
-    if (try < 10000) {
-        try++;
-        return rates_total;
-    }
-    else {
-        try = 0;
-    }
-
     if (prev_calculated == 0) {
-        z.Initialize(
+        p.Initialize(
             _Symbol,
             _Period,
             rates_total,
             Deviation
         );
-        if (!z.InitializeSuccess()) {
+        if (!p.InitializeSuccess()) {
             return rates_total;
         }
-        z.Scan();
+        p.Scan();
         ArrayInitialize(PlotZZSeries, 0);
-        z.CopyResult(PlotZZSeries);
-    }
-    else {
-        printf("OnCalculate canceled");
+        p.CopyResult(PlotZZSeries);
+        return rates_total;
     }
 
+    int appendSize = rates_total - prev_calculated;
+    if (appendSize == 0) {
+        return rates_total;
+    }
+    p.Scan(appendSize);
+    if (!p.InitializeSuccess()) {
+        return rates_total;
+    }
+    ArrayInitialize(PlotZZSeries, 0);
+    p.CopyResult(PlotZZSeries);
     return rates_total;
 }
