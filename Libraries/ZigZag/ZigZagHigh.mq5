@@ -25,10 +25,13 @@ public:
     double High(void);
     int HighAt(void);
     bool Found(void);
-    void FindHigh(void);
-    void FindHigh(int rangeStart);
+    void Find(void);
+    void Find(int rangeStart);
+    void Append(int);
 
 private:
+    string m_symbol;
+    ENUM_TIMEFRAMES m_period;
     int m_size;
     double m_deviation;
 
@@ -59,9 +62,11 @@ void ZigZagHigh::Initialize(
     int size,
     double deviation
 ) {
+    m_symbol = symbol;
+    m_period = period;
     m_size = size;
     m_deviation = deviation;
-    m_h.Initialize(symbol, period, m_size);
+    m_h.Initialize(m_symbol, m_period, m_size);
 }
 
 bool ZigZagHigh::InitializeSuccess() {
@@ -80,7 +85,7 @@ bool ZigZagHigh::Found() {
     return m_found;
 }
 
-void ZigZagHigh::FindHigh() {
+void ZigZagHigh::Find() {
     m_h.Fill();
     m_found = false;
     for (int i = 0; i < m_size; i++) {
@@ -92,7 +97,7 @@ void ZigZagHigh::FindHigh() {
     }
 }
 
-void ZigZagHigh::FindHigh(int rangeStart) {
+void ZigZagHigh::Find(int rangeStart) {
     m_found = false;
     for (int i = rangeStart; i < m_size; i++) {
         FindProvisionalHigh(rangeStart, i);
@@ -100,6 +105,13 @@ void ZigZagHigh::FindHigh(int rangeStart) {
         if (m_found) {
             return;
         }
+    }
+}
+
+void ZigZagHigh::Append(int size) {
+    m_h.Fill(size);
+    if (m_h.InitializeSuccess()) {
+        m_size += size;
     }
 }
 
