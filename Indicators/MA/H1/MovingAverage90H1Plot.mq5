@@ -14,8 +14,13 @@
 //--- indicator buffers
 double PlotMASeries[];
 
-#include "..\..\..\Libraries\Price\Close.mq5"
+#ifndef IG_MOVING_AVERAGE
+#define IG_MOVING_AVERAGE
 #include "..\..\..\Libraries\MA\MovingAverage.mq5"
+#endif
+
+#ifndef D_MOVING_AVERAGE_90H1_PLOT_H
+#define D_MOVING_AVERAGE_90H1_PLOT_H
 
 class MovingAverage90H1Plot {
 public:
@@ -26,41 +31,69 @@ public:
     bool InitializeSuccess(void);
 
     void Calc(void);
+    void Calc(int appendSize);
+    void Refresh(int size, double &plotMASeries[]);
     void CopyResult(double &plotMASeries[]);
 
 private:
-    Close close;
-    MovingAverage ma;
+    string m_symbol;
+    ENUM_TIMEFRAMES m_period;
+    int m_size;
+    MovingAverage m_m;
 };
+
+#endif
+
+#ifndef D_MOVING_AVERAGE_90H1_PLOT_B
+#define D_MOVING_AVERAGE_90H1_PLOT_B
 
 void MovingAverage90H1Plot::MovingAverage90H1Plot() {}
 
 void MovingAverage90H1Plot::~MovingAverage90H1Plot() {}
 
 void MovingAverage90H1Plot::Initialize(int size) {
-    close.Initialize(_Symbol, PERIOD_H1, size);
-    ma.Initialize(size, 89, 1);
+    m_symbol = _Symbol;
+    m_period = _Period;
+    m_size = size;
+    m_m.Initialize(m_symbol, m_period, m_size, 89, 1);
 }
 
 bool MovingAverage90H1Plot::InitializeSuccess() {
-    return close.InitializeSuccess()
-        && ma.InitializeSuccess();
+    return m_m.InitializeSuccess();
 }
 
 void MovingAverage90H1Plot::Calc() {
-    close.Fill();
-    ma.Calc(close);
+    m_m.Calc();
+}
+
+void MovingAverage90H1Plot::Calc(int appendSize) {
+    m_m.Calc(appendSize);
+    m_size += appendSize;
+}
+
+void MovingAverage90H1Plot::Refresh(int size, double &plotMASeries[]) {
+    if (size == 0) {
+        m_m.Refresh();
+        plotMASeries[m_size - 1] = m_m.ValueAt(m_size - 1);
+        return;
+    }
+
+    for (int i = m_size - size; i < m_size; i++) {
+        plotMASeries[i] = m_m.ValueAt(i);
+    }
 }
 
 void MovingAverage90H1Plot::CopyResult(double &plotMASeries[]) {
-    ma.CopyResult(plotMASeries);
+    for (int i = 0; i < m_size; i++) {
+        plotMASeries[i] = m_m.ValueAt(i);
+    }
 }
 
+#endif
+
 MovingAverage90H1Plot p;
-int try;
 
 int OnInit() {
-    try = 10000;
     SetIndexBuffer(0, PlotMASeries, INDICATOR_DATA);
     return(INIT_SUCCEEDED);
 }
@@ -69,16 +102,8 @@ int OnCalculate(
     const int rates_total,
     const int prev_calculated,
     const int begin,
-    const double& price[]) {
-
-    if (try < 10000) {
-        try += 1;
-        return rates_total;
-    }
-    else {
-        try = 0;
-    }
-
+    const double& price[]
+) {
     if (prev_calculated == 0) {
         p.Initialize(rates_total);
         if (!p.InitializeSuccess()) {
@@ -86,10 +111,16 @@ int OnCalculate(
         }
         p.Calc();
         p.CopyResult(PlotMASeries);
-    }
-    else {
-        printf("OnCalculate canceled");
+        return rates_total;
     }
 
+    int appendSize = rates_total - prev_calculated;
+    if (appendSize > 0) {
+        p.Calc(appendSize);
+    }
+    if (!p.InitializeSuccess()) {
+        return rates_total;
+    }
+    p.Refresh(appendSize, PlotMASeries);
     return rates_total;
 }
