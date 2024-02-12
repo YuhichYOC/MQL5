@@ -4,9 +4,9 @@
 #ifndef D_ZIGZAG_LOW_H
 #define D_ZIGZAG_LOW_H
 
-#ifndef IG_LOW
-#define IG_LOW
-#include "..\Price\Low.mq5"
+#ifndef IG_P_LOW
+#define IG_P_LOW
+#include "..\Price\PLow.mq5"
 #endif
 
 class ZigZagLow {
@@ -35,7 +35,7 @@ private:
     int m_size;
     double m_deviation;
 
-    Low m_l;
+    PLow m_l;
 
     double m_provisionalLow;
     int m_provisionalLowAt;

@@ -4,9 +4,9 @@
 #ifndef D_DEVIATIONS_H
 #define D_DEVIATIONS_H
 
-#ifndef IG_CLOSE
-#define IG_CLOSE
-#include "..\Price\Close.mq5"
+#ifndef IG_P_CLOSE
+#define IG_P_CLOSE
+#include "..\Price\PClose.mq5"
 #endif
 
 class Deviations {
@@ -36,7 +36,7 @@ private:
     int m_size;
     int m_rangeStart;
     int m_rangeEnd;
-    Close m_c;
+    PClose m_c;
     double m_results[];
     bool m_initializeSuccess;
 

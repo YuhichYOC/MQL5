@@ -4,9 +4,9 @@
 #ifndef D_ZIGZAG_HIGH_H
 #define D_ZIGZAG_HIGH_H
 
-#ifndef IG_HIGH
-#define IG_HIGH
-#include "..\Price\High.mq5"
+#ifndef IG_P_HIGH
+#define IG_P_HIGH
+#include "..\Price\PHigh.mq5"
 #endif
 
 class ZigZagHigh {
@@ -35,7 +35,7 @@ private:
     int m_size;
     double m_deviation;
 
-    High m_h;
+    PHigh m_h;
 
     double m_provisionalHigh;
     int m_provisionalHighAt;

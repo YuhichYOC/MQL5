@@ -5,25 +5,25 @@
 #property indicator_plots 4
 
 //--- plot Short
-#property indicator_label1 "High"
+#property indicator_label1 "PHigh"
 #property indicator_type1 DRAW_LINE
 #property indicator_color1 clrRed
 #property indicator_style1 STYLE_SOLID
 #property indicator_width1 1
 
-#property indicator_label2 "Low"
+#property indicator_label2 "PLow"
 #property indicator_type2 DRAW_LINE
 #property indicator_color2 clrBlue
 #property indicator_style2 STYLE_SOLID
 #property indicator_width2 1
 
-#property indicator_label3 "OpenCloseHigh"
+#property indicator_label3 "POpenCloseHigh"
 #property indicator_type3 DRAW_LINE
 #property indicator_color3 clrOrange
 #property indicator_style3 STYLE_SOLID
 #property indicator_width3 1
 
-#property indicator_label4 "OpenCloseLow"
+#property indicator_label4 "POpenCloseLow"
 #property indicator_type4 DRAW_LINE
 #property indicator_color4 clrSpringGreen
 #property indicator_style4 STYLE_SOLID
@@ -35,24 +35,24 @@ double PlotLowSeries[];
 double PlotOpenCloseHighSeries[];
 double PlotOpenCloseLowSeries[];
 
-#ifndef IG_HIGH
-#define IG_HIGH
-#include "..\..\Libraries\Price\High.mq5"
+#ifndef IG_P_HIGH
+#define IG_P_HIGH
+#include "..\..\Libraries\Price\PHigh.mq5"
 #endif
 
-#ifndef IG_LOW
-#define IG_LOW
-#include "..\..\Libraries\Price\Low.mq5"
+#ifndef IG_P_LOW
+#define IG_P_LOW
+#include "..\..\Libraries\Price\PLow.mq5"
 #endif
 
-#ifndef IG_OPEN_CLOSE_HIGH
-#define IG_OPEN_CLOSE_HIGH
-#include "..\..\Libraries\Price\OpenCloseHigh.mq5"
+#ifndef IG_P_OPEN_CLOSE_HIGH
+#define IG_P_OPEN_CLOSE_HIGH
+#include "..\..\Libraries\Price\POpenCloseHigh.mq5"
 #endif
 
-#ifndef IG_OPEN_CLOSE_LOW
-#define IG_OPEN_CLOSE_LOW
-#include "..\..\Libraries\Price\OpenCloseLow.mq5"
+#ifndef IG_P_OPEN_CLOSE_LOW
+#define IG_P_OPEN_CLOSE_LOW
+#include "..\..\Libraries\Price\POpenCloseLow.mq5"
 #endif
 
 #ifndef D_PRICE_PLOT_H
@@ -86,10 +86,10 @@ private:
     string m_symbol;
     ENUM_TIMEFRAMES m_period;
     int m_size;
-    High m_h;
-    Low m_l;
-    OpenCloseHigh m_och;
-    OpenCloseLow m_ocl;
+    PHigh m_h;
+    PLow m_l;
+    POpenCloseHigh m_och;
+    POpenCloseLow m_ocl;
 };
 
 #endif

@@ -1,13 +1,13 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
-#ifndef D_OPEN_CLOSE_HIGH_H
-#define D_OPEN_CLOSE_HIGH_H
+#ifndef D_P_OPEN_CLOSE_LOW_H
+#define D_P_OPEN_CLOSE_LOW_H
 
-class OpenCloseHigh {
+class POpenCloseLow {
 public:
-    OpenCloseHigh(void);
-    ~OpenCloseHigh(void);
+    POpenCloseLow(void);
+    ~POpenCloseLow(void);
 
     void Initialize(string symbol, ENUM_TIMEFRAMES period, int size);
     bool InitializeSuccess(void);
@@ -29,14 +29,14 @@ private:
 
 #endif
 
-#ifndef D_OPEN_CLOSE_HIGH_B
-#define D_OPEN_CLOSE_HIGH_B
+#ifndef D_P_OPEN_CLOSE_LOW_B
+#define D_P_OPEN_CLOSE_LOW_B
 
-void OpenCloseHigh::OpenCloseHigh() {}
+void POpenCloseLow::POpenCloseLow() {}
 
-void OpenCloseHigh::~OpenCloseHigh() {}
+void POpenCloseLow::~POpenCloseLow() {}
 
-void OpenCloseHigh::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
+void POpenCloseLow::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_symbol = symbol;
     m_period = period;
     m_size = size;
@@ -47,19 +47,19 @@ void OpenCloseHigh::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) 
     m_initializeSuccess = true;
 }
 
-bool OpenCloseHigh::InitializeSuccess() {
+bool POpenCloseLow::InitializeSuccess() {
     return m_initializeSuccess;
 }
 
-int OpenCloseHigh::GetSize() {
+int POpenCloseLow::GetSize() {
     return m_size;
 }
 
-void OpenCloseHigh::Fill() {
+void POpenCloseLow::Fill() {
     for (int i = 0; i < m_size; i++) {
         double open = iOpen(m_symbol, m_period, i);
         double close = iClose(m_symbol, m_period, i);
-        if (open >= close) {
+        if (open <= close) {
             m_results[(m_size - 1) - i] = open;
         }
         else {
@@ -68,7 +68,7 @@ void OpenCloseHigh::Fill() {
     }
 }
 
-void OpenCloseHigh::Fill(int appendSize) {
+void POpenCloseLow::Fill(int appendSize) {
     if (ArrayResize(m_results, m_size + appendSize, 0) == -1) {
         m_initializeSuccess = false;
         return;
@@ -76,7 +76,7 @@ void OpenCloseHigh::Fill(int appendSize) {
     for (int i = 0; i < appendSize; i++) {
         double open = iOpen(m_symbol, m_period, i);
         double close = iClose(m_symbol, m_period, i);
-        if (open >= close) {
+        if (open <= close) {
             m_results[(m_size + appendSize - 1) - i] = open;
         }
         else {
@@ -87,10 +87,10 @@ void OpenCloseHigh::Fill(int appendSize) {
     m_initializeSuccess = true;
 }
 
-void OpenCloseHigh::Refresh() {
+void POpenCloseLow::Refresh() {
     double open = iOpen(m_symbol, m_period, 0);
     double close = iClose(m_symbol, m_period, 0);
-    if (open >= close) {
+    if (open <= close) {
         m_results[m_size - 1] = open;
     }
     else {
@@ -98,13 +98,13 @@ void OpenCloseHigh::Refresh() {
     }
 }
 
-void OpenCloseHigh::CopyResult(double &results[]) {
+void POpenCloseLow::CopyResult(double &results[]) {
     for (int i = 0; i < m_size; i++) {
         results[i] = m_results[i];
     }
 }
 
-double OpenCloseHigh::ValueAt(int index) {
+double POpenCloseLow::ValueAt(int index) {
     return m_results[index];
 }
 

@@ -1,13 +1,13 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
-#ifndef D_OPEN_H
-#define D_OPEN_H
+#ifndef D_P_CLOSE_H
+#define D_P_CLOSE_H
 
-class Open {
+class PClose {
 public:
-    Open(void);
-    ~Open(void);
+    PClose(void);
+    ~PClose(void);
 
     void Initialize(string symbol, ENUM_TIMEFRAMES period, int size);
     bool InitializeSuccess(void);
@@ -29,14 +29,14 @@ private:
 
 #endif
 
-#ifndef D_OPEN_B
-#define D_OPEN_B
+#ifndef D_P_CLOSE_B
+#define D_P_CLOSE_B
 
-void Open::Open() {}
+void PClose::PClose() {}
 
-void Open::~Open() {}
+void PClose::~PClose() {}
 
-void Open::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
+void PClose::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_symbol = symbol;
     m_period = period;
     m_size = size;
@@ -47,43 +47,43 @@ void Open::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_initializeSuccess = true;
 }
 
-bool Open::InitializeSuccess() {
+bool PClose::InitializeSuccess() {
     return m_initializeSuccess;
 }
 
-int Open::GetSize() {
+int PClose::GetSize() {
     return m_size;
 }
 
-void Open::Fill() {
+void PClose::Fill() {
     for (int i = 0; i < m_size; i++) {
-        m_results[(m_size - 1) - i] = iOpen(m_symbol, m_period, i);
+        m_results[(m_size - 1) - i] = iClose(m_symbol, m_period, i);
     }
 }
 
-void Open::Fill(int appendSize) {
+void PClose::Fill(int appendSize) {
     if (ArrayResize(m_results, m_size + appendSize, 0) == -1) {
         m_initializeSuccess = false;
         return;
     }
     for (int i = 0; i < appendSize; i++) {
-        m_results[(m_size + appendSize - 1) - i] = iOpen(m_symbol, m_period, i);
+        m_results[(m_size + appendSize - 1) - i] = iClose(m_symbol, m_period, i);
     }
     m_size += appendSize;
     m_initializeSuccess = true;
 }
 
-void Open::Refresh() {
-    m_results[m_size - 1] = iOpen(m_symbol, m_period, 0);
+void PClose::Refresh() {
+    m_results[m_size - 1] = iClose(m_symbol, m_period, 0);
 }
 
-void Open::CopyResult(double &results[]) {
+void PClose::CopyResult(double &results[]) {
     for (int i = 0; i < m_size; i++) {
         results[i] = m_results[i];
     }
 }
 
-double Open::ValueAt(int index) {
+double PClose::ValueAt(int index) {
     return m_results[index];
 }
 

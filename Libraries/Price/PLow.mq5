@@ -1,13 +1,13 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
-#ifndef D_HIGH_H
-#define D_HIGH_H
+#ifndef D_P_LOW_H
+#define D_P_LOW_H
 
-class High {
+class PLow {
 public:
-    High(void);
-    ~High(void);
+    PLow(void);
+    ~PLow(void);
 
     void Initialize(string symbol, ENUM_TIMEFRAMES period, int size);
     bool InitializeSuccess(void);
@@ -29,14 +29,14 @@ private:
 
 #endif
 
-#ifndef D_HIGH_B
-#define D_HIGH_B
+#ifndef D_P_LOW_B
+#define D_P_LOW_B
 
-void High::High() {}
+void PLow::PLow() {}
 
-void High::~High() {}
+void PLow::~PLow() {}
 
-void High::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
+void PLow::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_symbol = symbol;
     m_period = period;
     m_size = size;
@@ -47,43 +47,43 @@ void High::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_initializeSuccess = true;
 }
 
-bool High::InitializeSuccess() {
+bool PLow::InitializeSuccess() {
     return m_initializeSuccess;
 }
 
-int High::GetSize() {
+int PLow::GetSize() {
     return m_size;
 }
 
-void High::Fill() {
+void PLow::Fill() {
     for (int i = 0; i < m_size; i++) {
-        m_results[(m_size - 1) - i] = iHigh(m_symbol, m_period, i);
+        m_results[(m_size - 1) - i] = iLow(m_symbol, m_period, i);
     }
 }
 
-void High::Fill(int appendSize) {
+void PLow::Fill(int appendSize) {
     if (ArrayResize(m_results, m_size + appendSize, 0) == -1) {
         m_initializeSuccess = false;
         return;
     }
     for (int i = 0; i < appendSize; i++) {
-        m_results[(m_size + appendSize - 1) - i] = iHigh(m_symbol, m_period, i);
+        m_results[(m_size + appendSize - 1) - i] = iLow(m_symbol, m_period, i);
     }
     m_size += appendSize;
     m_initializeSuccess = true;
 }
 
-void High::Refresh() {
-    m_results[m_size - 1] = iHigh(m_symbol, m_period, 0);
+void PLow::Refresh() {
+    m_results[m_size - 1] = iLow(m_symbol, m_period, 0);
 }
 
-void High::CopyResult(double &results[]) {
+void PLow::CopyResult(double &results[]) {
     for (int i = 0; i < m_size; i++) {
         results[i] = m_results[i];
     }
 }
 
-double High::ValueAt(int index) {
+double PLow::ValueAt(int index) {
     return m_results[index];
 }
 

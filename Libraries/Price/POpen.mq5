@@ -1,13 +1,13 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
-#ifndef D_CLOSE_H
-#define D_CLOSE_H
+#ifndef D_P_OPEN_H
+#define D_P_OPEN_H
 
-class Close {
+class POpen {
 public:
-    Close(void);
-    ~Close(void);
+    POpen(void);
+    ~POpen(void);
 
     void Initialize(string symbol, ENUM_TIMEFRAMES period, int size);
     bool InitializeSuccess(void);
@@ -29,14 +29,14 @@ private:
 
 #endif
 
-#ifndef D_CLOSE_B
-#define D_CLOSE_B
+#ifndef D_P_OPEN_B
+#define D_P_OPEN_B
 
-void Close::Close() {}
+void POpen::POpen() {}
 
-void Close::~Close() {}
+void POpen::~POpen() {}
 
-void Close::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
+void POpen::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_symbol = symbol;
     m_period = period;
     m_size = size;
@@ -47,43 +47,43 @@ void Close::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_initializeSuccess = true;
 }
 
-bool Close::InitializeSuccess() {
+bool POpen::InitializeSuccess() {
     return m_initializeSuccess;
 }
 
-int Close::GetSize() {
+int POpen::GetSize() {
     return m_size;
 }
 
-void Close::Fill() {
+void POpen::Fill() {
     for (int i = 0; i < m_size; i++) {
-        m_results[(m_size - 1) - i] = iClose(m_symbol, m_period, i);
+        m_results[(m_size - 1) - i] = iOpen(m_symbol, m_period, i);
     }
 }
 
-void Close::Fill(int appendSize) {
+void POpen::Fill(int appendSize) {
     if (ArrayResize(m_results, m_size + appendSize, 0) == -1) {
         m_initializeSuccess = false;
         return;
     }
     for (int i = 0; i < appendSize; i++) {
-        m_results[(m_size + appendSize - 1) - i] = iClose(m_symbol, m_period, i);
+        m_results[(m_size + appendSize - 1) - i] = iOpen(m_symbol, m_period, i);
     }
     m_size += appendSize;
     m_initializeSuccess = true;
 }
 
-void Close::Refresh() {
-    m_results[m_size - 1] = iClose(m_symbol, m_period, 0);
+void POpen::Refresh() {
+    m_results[m_size - 1] = iOpen(m_symbol, m_period, 0);
 }
 
-void Close::CopyResult(double &results[]) {
+void POpen::CopyResult(double &results[]) {
     for (int i = 0; i < m_size; i++) {
         results[i] = m_results[i];
     }
 }
 
-double Close::ValueAt(int index) {
+double POpen::ValueAt(int index) {
     return m_results[index];
 }
 

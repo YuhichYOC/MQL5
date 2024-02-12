@@ -1,13 +1,13 @@
 #property library
 #property copyright "Copyright 2022, YuhichYOC"
 
-#ifndef D_LOW_H
-#define D_LOW_H
+#ifndef D_P_HIGH_H
+#define D_P_HIGH_H
 
-class Low {
+class PHigh {
 public:
-    Low(void);
-    ~Low(void);
+    PHigh(void);
+    ~PHigh(void);
 
     void Initialize(string symbol, ENUM_TIMEFRAMES period, int size);
     bool InitializeSuccess(void);
@@ -29,14 +29,14 @@ private:
 
 #endif
 
-#ifndef D_LOW_B
-#define D_LOW_B
+#ifndef D_P_HIGH_B
+#define D_P_HIGH_B
 
-void Low::Low() {}
+void PHigh::PHigh() {}
 
-void Low::~Low() {}
+void PHigh::~PHigh() {}
 
-void Low::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
+void PHigh::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_symbol = symbol;
     m_period = period;
     m_size = size;
@@ -47,43 +47,43 @@ void Low::Initialize(string symbol, ENUM_TIMEFRAMES period, int size) {
     m_initializeSuccess = true;
 }
 
-bool Low::InitializeSuccess() {
+bool PHigh::InitializeSuccess() {
     return m_initializeSuccess;
 }
 
-int Low::GetSize() {
+int PHigh::GetSize() {
     return m_size;
 }
 
-void Low::Fill() {
+void PHigh::Fill() {
     for (int i = 0; i < m_size; i++) {
-        m_results[(m_size - 1) - i] = iLow(m_symbol, m_period, i);
+        m_results[(m_size - 1) - i] = iHigh(m_symbol, m_period, i);
     }
 }
 
-void Low::Fill(int appendSize) {
+void PHigh::Fill(int appendSize) {
     if (ArrayResize(m_results, m_size + appendSize, 0) == -1) {
         m_initializeSuccess = false;
         return;
     }
     for (int i = 0; i < appendSize; i++) {
-        m_results[(m_size + appendSize - 1) - i] = iLow(m_symbol, m_period, i);
+        m_results[(m_size + appendSize - 1) - i] = iHigh(m_symbol, m_period, i);
     }
     m_size += appendSize;
     m_initializeSuccess = true;
 }
 
-void Low::Refresh() {
-    m_results[m_size - 1] = iLow(m_symbol, m_period, 0);
+void PHigh::Refresh() {
+    m_results[m_size - 1] = iHigh(m_symbol, m_period, 0);
 }
 
-void Low::CopyResult(double &results[]) {
+void PHigh::CopyResult(double &results[]) {
     for (int i = 0; i < m_size; i++) {
         results[i] = m_results[i];
     }
 }
 
-double Low::ValueAt(int index) {
+double PHigh::ValueAt(int index) {
     return m_results[index];
 }
 
